@@ -69,14 +69,12 @@ class Board
 
   # does this board have a winner?
   # check if there is a winning row, then if there is a winning column, then diagonal.
-  # returns token of the winner
+  # returns token of the winner or nil if the game is not yet won.
   def winner
-    win_rows = rows.select { |r| r.all? && r.uniq.size == 1 }
-    return win_rows[0][0] if !win_rows.empty?
-    win_cols = columns.select { |c| c.all? && c.uniq.size == 1 }
-    return win_cols[0][0] if !win_cols.empty?
-    win_diags = diagonals.select { |d| d.all? && d.uniq.size == 1 }
-    return win_diags[0][0] if !win_diags.empty?
+    [rows, columns, diagonals].each do |groups|
+      win_groups = groups.select { |g| g.all? && g.uniq.size == 1 }
+      return win_groups[0][0] if !win_groups.empty?
+    end
     nil
   end
 

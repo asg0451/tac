@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
-require_relative './tac.rb'
+require_relative '../lib/tac.rb'
 
 # change this to change the board size (warning: for size > 3 this gets real slow)
-BOARD_SIZE = 4
+BOARD_SIZE = 3
 
 def interact
   board = Board.empty(BOARD_SIZE)
