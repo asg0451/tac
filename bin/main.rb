@@ -24,7 +24,7 @@ def interact(options)
     while !board.game_over?
       catch :game_loop do
         players.each do |player|
-          moved_validly = player.play_turn(board, options[:board_size])
+          moved_validly = player.play_turn(board, options[:search_depth])
           if !moved_validly
             puts 'invalid move'
             throw :game_loop
