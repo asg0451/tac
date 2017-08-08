@@ -2,13 +2,15 @@
 
 require_relative './tac.rb'
 
+# change this to change the board size (warning: for size > 3 this gets real slow)
+BOARD_SIZE = 3
 
 def interact
-  # change this to change the board size (warning: for size > 3 this gets real slow)
-  board = Board.empty(3)
+  board = Board.empty(BOARD_SIZE)
 
-  # randomly assign player tokens
-  user_player = rand(2).zero? ? 'X' : 'O'
+  # assign player tokens
+  puts "do you want to be X or O [x/O]"
+  user_player = (gets.chomp.downcase == 'x' ? 'X' : 'O')
   computer_player = user_player == 'X' ? 'O' : 'X'
   puts "you are #{user_player}"
 
@@ -50,7 +52,7 @@ def computer_turn(board, user_player, computer_player)
   return board.mark!(0, 0, computer_player) if board.empty?
 
   move = calculate_move(board, user_player, computer_player, computer_player)
-  return if move&.[](:location).nil?
+  return if move[:location].nil?
   board.mark!(move[:location][0], move[:location][1], computer_player)
 end
 

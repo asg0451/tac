@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 require 'byebug'
 
+AB_DEPTH = 8
+
 class Board
   include Enumerable
 
@@ -32,26 +34,26 @@ class Board
   end
 
   # enumerable stuff
-  def each(&block)
-    @m.each(&block)
+  def each(*args, &block)
+    @m.each(*args, &block)
   end
 
-  def rows(&block)
-    @m.each(&block)
+  def rows(*args, &block)
+    @m.each(*args, &block)
   end
 
-  def columns(&block)
+  def columns(*args, &block)
     (0..@m.size - 1).map do |i|
       @m.map { |a| a[i] }
-    end.each(&block)
+    end.each(*args, &block)
   end
 
-  def diagonals(&block)
+  def diagonals(*args, &block)
     # left -> right diagonal + right -> left diagonal
     (
       [(0..max_ind).map { |i| @m[i][i] }] +
       [(0..max_ind).map { |i| @m[max_ind - i][i] }]
-    ).each(&block)
+    ).each(*args, &block)
   end
 
   def empty?
@@ -96,51 +98,59 @@ class Board
     cells
   end
 
+  # heuristic for a player winning the game given this board
+  def heuristic_for_player(player)
+    # for each row, col, diag:
+    #   +100 for a win, 10 for two (with 1 empty), 1 for single (with 2 empty)
+    #   above negated for other player
+    # , summed
+    heuristic_proc = proc do |acc, row|
+      acc += 100 if row.all?   { |c| c == player }
+      acc += 10  if row.select { |c| c == player }.size == 2 && row.any?(&:nil?)
+      acc += 1   if row.select { |c| c == player }.size == 1 && row.select(&:nil?).size == 2
+
+      acc -= 100 if row.all?   { |c| !c.nil? && c != player}
+      acc -= 10  if row.select { |c| !c.nil? && c != player }.size == 2 && row.any?(&:nil?)
+      acc -= 1   if row.select { |c| !c.nil? && c != player }.size == 1 && row.select(&:nil?).size == 2
+
+      acc
+    end
+
+    rows.reduce(0, &heuristic_proc) + columns.reduce(0, &heuristic_proc) + diagonals.reduce(0, &heuristic_proc)
+  end
+
   private
 
   def invalid_indices(row, col)
     row.nil? || col.nil? || row > max_ind || col > max_ind || row < 0 || col < 0
   end
-
 end
 
-# ## tests todo rspec
-# board = Board.new([[nil, nil, nil], [nil, nil, nil], [nil, nil, nil]])
-# boardc = Board.new([['X', 'O', nil], ['X', 'O', nil], ['X', nil, nil]])
-# boardr = Board.new([['O','O', nil], ['X', 'X', 'X'], [nil, nil, nil]])
-# boardd = Board.new([['O','O', nil], ['X', 'O', 'X'], [nil, nil, 'O']])
-
-# puts board.winner
-# puts boardc.winner
-# puts boardr.winner
-# puts boardd.winner
-# puts boardc
-# ##
-
-
-# naive minimax search
-def calculate_move(board, user_player, computer_player, current_player = computer_player)
-  available_cells = board.available_cells
-
-  # base cases
-  return { score: -10 } if board.winner == user_player
-  return { score: 10 }  if board.winner == computer_player
-  return { score: 0 }   if available_cells.empty?
-
-
-  # the player who is not the current_player
+def calc_alpha_beta(board, depth, alpha, beta, user_player, computer_player, current_player = computer_player)
+  return { score: board.heuristic_for_player(computer_player) } if depth == 0 || board.available_cells.empty?
   other_player = current_player == computer_player ? user_player : computer_player
-
-  moves = available_cells.map do |(r, c)|
-    {
-      location: [r, c],
-      score: calculate_move(board.mark(r, c, current_player), user_player, computer_player, other_player)[:score]
-    }
-  end
-
   if current_player == computer_player
-    moves.max_by { |move| move[:score] }
+    v = { score: -Float::INFINITY }
+    board.available_cells.map do |(r, c)|
+      v_prime = calc_alpha_beta(board.mark(r, c, current_player), depth - 1, alpha, beta, user_player, computer_player, other_player)
+      v_prime[:location] = [r, c]
+      v = [v, v_prime].max_by { |h| h[:score] }
+      alpha = [alpha, v[:score]].max
+      break if beta <= alpha
+    end
   else
-    moves.min_by { |move| move[:score] }
+    v = { score: Float::INFINITY }
+    board.available_cells.map do |(r, c)|
+      v_prime = calc_alpha_beta(board.mark(r, c, current_player), depth - 1, alpha, beta, user_player, computer_player, other_player)
+      v_prime[:location] = [r, c]
+      v = [v, v_prime].min_by { |h| h[:score] }
+      beta = [beta, v[:score]].min
+      break if beta <= alpha
+    end
   end
+  v
+end
+
+def calculate_move(board, user_player, computer_player, current_player = computer_player)
+  calc_alpha_beta(board, AB_DEPTH, -Float::INFINITY, Float::INFINITY, user_player, computer_player, current_player)
 end
