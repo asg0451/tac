@@ -70,6 +70,8 @@ class Board
   # does this board have a winner?
   # check if there is a winning row, then if there is a winning column, then diagonal.
   # returns token of the winner or nil if the game is not yet won.
+  # a winning row/column/diagonal is one which has no nils and whose elements are all the same.
+  # the winner is then the element which is the same.
   def winner
     [rows, columns, diagonals].each do |groups|
       win_groups = groups.select { |g| g.all? && g.uniq.size == 1 }
@@ -81,7 +83,7 @@ class Board
   # pretty-print
   def to_s
     rows.reduce('') do |str, r|
-      str + '| ' << r.map { |e| e.nil? ? ' ' : e }.join(' | ') + " |\n"
+      str + '| ' + r.map { |e| e.nil? ? ' ' : e }.join(' | ') + " |\n"
     end
   end
 
