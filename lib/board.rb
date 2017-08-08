@@ -75,7 +75,7 @@ class Board
 
   # does this board have a winner?
   # check if there is a winning row, then if there is a winning column, then diagonal.
-  # returns token of the winner or nil if the game is not yet won.
+  # returns the winner or nil if the game is not yet won.
   # a winning row/column/diagonal is one which has no nils and whose elements are all the same.
   # the winner is then the element which is the same.
   def winner
