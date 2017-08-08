@@ -25,6 +25,8 @@ def interact(options)
         puts 'invalid move'
         next
       end
+      # break early if user just won
+      break if !board.winner.nil? || board.available_cells.empty?
       computer_turn(board, user_player, computer_player, options[:search_depth])
     end
 

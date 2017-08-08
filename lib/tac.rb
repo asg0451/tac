@@ -106,13 +106,15 @@ class Board
     #   above negated for other player
     # , summed
     heuristic_proc = proc do |acc, row|
-      acc += 100 if row.all?   { |c| c == player }
-      acc += 10  if row.select { |c| c == player }.size == 2 && row.any?(&:nil?)
-      acc += 1   if row.select { |c| c == player }.size == 1 && row.select(&:nil?).size == 2
+      is_player_proc = proc { |c| c == player }
+      acc += 100 if row.all?(&is_player_proc)
+      acc += 10  if row.select(&is_player_proc).size == 2 && row.any?(&:nil?)
+      acc += 1   if row.select(&is_player_proc).size == 1 && row.select(&:nil?).size == 2
 
-      acc -= 100 if row.all?   { |c| !c.nil? && c != player}
-      acc -= 10  if row.select { |c| !c.nil? && c != player }.size == 2 && row.any?(&:nil?)
-      acc -= 1   if row.select { |c| !c.nil? && c != player }.size == 1 && row.select(&:nil?).size == 2
+      is_other_player_proc = proc { |c| !c.nil? && c != player}
+      acc -= 100 if row.all?(&is_other_player_proc)
+      acc -= 10  if row.select(&is_other_player_proc).size == 2 && row.any?(&:nil?)
+      acc -= 1   if row.select(&is_other_player_proc).size == 1 && row.select(&:nil?).size == 2
 
       acc
     end
