@@ -1,37 +1,42 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require_relative '../lib/tac.rb'
+require_relative '../lib/player.rb'
+require_relative '../lib/board.rb'
 
 def interact(options)
   loop do
-    board = Board.empty(options[:board_size])
-
     # assign player tokens
     puts "do you want to be X or O [x/O]"
-    user_player = (gets.chomp.downcase == 'x' ? 'X' : 'O')
-    computer_player = user_player == 'X' ? 'O' : 'X'
-    puts "you are #{user_player}"
+    human_player = HumanPlayer.new(gets.chomp.downcase == 'x' ? 'X' : 'O')
+    computer_player = ComputerPlayer.new(human_player.to_s == 'X' ? 'O' : 'X')
+    puts "you are #{human_player}"
 
+    board = Board.empty(options[:board_size], human_player, computer_player)
+
+    player_list = [human_player, computer_player]
     # computer maybe goes first
     if rand(2).zero?
       puts 'computer going first..'
-      computer_turn(board, user_player, computer_player, options[:search_depth])
+      player_list.reverse!
     end
 
     while board.winner.nil? && !board.available_cells.empty?
-      moved_validly = user_turn(board, user_player)
-      if !moved_validly
-        puts 'invalid move'
-        next
+      catch :game_loop do
+        player_list.each do |player|
+          moved_validly = player.play_turn(board, options[:board_size])
+          if !moved_validly
+            puts 'invalid move'
+            throw :game_loop
+          end
+          # break early if user just won
+          throw :game_loop if !board.winner.nil? || board.available_cells.empty?
+        end
       end
-      # break early if user just won
-      break if !board.winner.nil? || board.available_cells.empty?
-      computer_turn(board, user_player, computer_player, options[:search_depth])
     end
 
     if board.winner
-      puts "winner: #{board.winner}"
+      puts "winner: #{board.winner} (#{board.winner.class})"
     else
       puts "it's a tie"
     end
@@ -40,22 +45,6 @@ def interact(options)
     puts 'do you want to play again? [y/N]'
     break if gets.chomp != 'y'
   end
-end
-
-def user_turn(board, user_player)
-  puts board
-  puts 'enter move: row,column (zero-indexed)'
-  r, c = gets.chomp.split(',').map(&:to_i)
-  board.mark!(r, c, user_player)
-end
-
-def computer_turn(board, user_player, computer_player, search_depth)
-  # cheat slightly if the board is empty: place a token somewhere random
-  return board.mark!(rand(board.size), rand(board.size), computer_player) if board.empty?
-
-  move = calculate_move(board, user_player, computer_player, computer_player, search_depth)
-  return if move[:location].nil?
-  board.mark!(move[:location][0], move[:location][1], computer_player)
 end
 
 ###

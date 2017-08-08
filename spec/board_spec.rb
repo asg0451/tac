@@ -1,4 +1,5 @@
-require_relative '../lib/tac.rb'
+require_relative '../lib/board.rb'
+require_relative '../lib/player.rb'
 
 RSpec.describe Board, 'Board' do
 
@@ -87,17 +88,17 @@ RSpec.describe Board, 'Board' do
 
       it 'detects a row winner' do
         b.mark!(0, 1, 'X')
-        expect(b.winner).to eq 'X'
+        expect(b.winner.to_s).to eq 'X'
       end
 
       it 'detects a column winner' do
         b.mark!(1, 0, 'X')
-        expect(b.winner).to eq 'X'
+        expect(b.winner.to_s).to eq 'X'
       end
 
       it 'detects a diagonal winner' do
         b.mark!(1, 1, 'X')
-        expect(b.winner).to eq 'X'
+        expect(b.winner.to_s).to eq 'X'
       end
     end
 
