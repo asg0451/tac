@@ -103,7 +103,7 @@ class Board
   def heuristic_for_player(player)
     # for each row, col, diag:
     #   +100 for a win, 10 for two (with 1 empty), 1 for single (with 2 empty)
-    #   above negated for other player
+    #   above negated for other player, subtracting 1/10th because it is not their turn (assume it is player's turn)
     # , summed
     heuristic_proc = proc do |acc, row|
       is_player_proc = proc { |c| c == player }
@@ -112,9 +112,9 @@ class Board
       acc += 1   if row.select(&is_player_proc).size == 1 && row.select(&:nil?).size == 2
 
       is_other_player_proc = proc { |c| !c.nil? && c != player}
-      acc -= 100 if row.all?(&is_other_player_proc)
-      acc -= 10  if row.select(&is_other_player_proc).size == 2 && row.any?(&:nil?)
-      acc -= 1   if row.select(&is_other_player_proc).size == 1 && row.select(&:nil?).size == 2
+      acc -= 90 if row.all?(&is_other_player_proc)
+      acc -= 9  if row.select(&is_other_player_proc).size == 2 && row.any?(&:nil?)
+      acc -= 0.9   if row.select(&is_other_player_proc).size == 1 && row.select(&:nil?).size == 2
 
       acc
     end
