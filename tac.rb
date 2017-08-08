@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 require 'byebug'
 
-AB_DEPTH = 8
+# if the algorithm is too slow, try decreasing this number
+AB_DEPTH = 4
 
 class Board
   include Enumerable
@@ -129,25 +130,21 @@ end
 def calc_alpha_beta(board, depth, alpha, beta, user_player, computer_player, current_player = computer_player)
   return { score: board.heuristic_for_player(computer_player) } if depth == 0 || board.available_cells.empty?
   other_player = current_player == computer_player ? user_player : computer_player
-  if current_player == computer_player
-    v = { score: -Float::INFINITY }
-    board.available_cells.map do |(r, c)|
-      v_prime = calc_alpha_beta(board.mark(r, c, current_player), depth - 1, alpha, beta, user_player, computer_player, other_player)
-      v_prime[:location] = [r, c]
-      v = [v, v_prime].max_by { |h| h[:score] }
-      alpha = [alpha, v[:score]].max
-      break if beta <= alpha
-    end
-  else
-    v = { score: Float::INFINITY }
-    board.available_cells.map do |(r, c)|
-      v_prime = calc_alpha_beta(board.mark(r, c, current_player), depth - 1, alpha, beta, user_player, computer_player, other_player)
-      v_prime[:location] = [r, c]
-      v = [v, v_prime].min_by { |h| h[:score] }
-      beta = [beta, v[:score]].min
-      break if beta <= alpha
-    end
+
+  # index from minmax functions to take. 0 is min, 1 is max
+  minmax_index = current_player == computer_player ? 1 : 0
+
+  # start with -infinity for computer, +infinity for other player
+  v = { score: Float::INFINITY * (current_player == computer_player ? -1 : 1)}
+
+  board.available_cells.map do |(r, c)|
+    v_prime = calc_alpha_beta(board.mark(r, c, current_player), depth - 1, alpha, beta, user_player, computer_player, other_player)
+    v_prime[:location] = [r, c]
+    v = [v, v_prime].minmax_by { |h| h[:score] }[minmax_index]
+    alpha = [alpha, v[:score]].minmax[minmax_index]
+    break if beta <= alpha
   end
+
   v
 end
 
