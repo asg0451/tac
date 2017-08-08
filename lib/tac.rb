@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
-require 'byebug'
 
-# if the algorithm is too slow, try decreasing this number
+# if the algorithm is too slow, try decreasing this number. if it's too inaccurate, try increasing it.
 AB_DEPTH = 4
 
 class Board

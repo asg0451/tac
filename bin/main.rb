@@ -42,7 +42,7 @@ end
 
 def user_turn(board, user_player)
   puts board
-  puts 'enter move: row,column'
+  puts 'enter move: row,column (zero-indexed)'
   r, c = gets.chomp.split(',').map(&:to_i)
   board.mark!(r, c, user_player)
 end
