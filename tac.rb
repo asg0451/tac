@@ -4,30 +4,34 @@ require 'byebug'
 class Board
   include Enumerable
 
-  attr_reader :m
-
   def initialize(m) # rows
     raise ArgumentError, 'non-square matrix' if m.map(&:size).uniq.size != 1 || m.map(&:size).uniq.first != m.size
     @m = m
   end
 
+  # alternate constructor for empty board
   def self.empty(arity = 3)
     new((0..arity - 1).map { [nil].cycle(arity) }.map(&:to_a))
   end
 
+  # mark cell on board with some token.
+  # mutative. does bounds checking and "is this spot taken" checking
   def mark!(row, col, player)
-    byebug if row.is_a?(Hash) || col.is_a?(Hash)
-    return false if !@m[row][col].nil?
+    return false if invalid_indices(row, col) || !@m[row][col].nil?
     @m[row][col] = player
     true
   end
 
+  # non-mutative version of mark!
+  # will fail silently for invalid placements.
+  # used in minimax search.
   def mark(row, col, player)
     new_board = Board.new(@m.map(&:dup))
     new_board.mark!(row, col, player)
     new_board
   end
 
+  # enumerable stuff
   def each(&block)
     @m.each(&block)
   end
@@ -50,10 +54,19 @@ class Board
     ).each(&block)
   end
 
+  def empty?
+    @m.flatten.none?
+  end
+  # enumerable stuff ends
+
+  # maximum index of board. used for convenience.
   def max_ind
     @m.size - 1
   end
 
+  # does this board have a winner?
+  # check if there is a winning row, then if there is a winning column, then diagonal.
+  # returns token of the winner
   def winner
     win_rows = rows.select { |r| r.all? && r.uniq.size == 1 }
     return win_rows[0][0] if !win_rows.empty?
@@ -64,14 +77,15 @@ class Board
     nil
   end
 
+  # pretty-print
   def to_s
     rows.reduce('') do |str, r|
       str + '| ' << r.map { |e| e.nil? ? ' ' : e }.join(' | ') + " |\n"
     end
   end
 
-  # [ [r,c] ]
-  # TODO functionalize
+  # returns list of tuples describing non-marked cells
+  # -> [ [r,c] ]
   def available_cells
     cells = []
     rows.each_with_index do |row, ri|
@@ -80,6 +94,12 @@ class Board
       end
     end
     cells
+  end
+
+  private
+
+  def invalid_indices(row, col)
+    row.nil? || col.nil? || row > max_ind || col > max_ind || row < 0 || col < 0
   end
 
 end
@@ -98,16 +118,18 @@ end
 # ##
 
 
-# https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Improvements_over_naive_minimax
-
+# naive minimax search
 def calculate_move(board, user_player, computer_player, current_player = computer_player)
-  other_player = current_player == computer_player ? user_player : computer_player
   available_cells = board.available_cells
 
   # base cases
   return { score: -10 } if board.winner == user_player
   return { score: 10 }  if board.winner == computer_player
   return { score: 0 }   if available_cells.empty?
+
+
+  # the player who is not the current_player
+  other_player = current_player == computer_player ? user_player : computer_player
 
   moves = available_cells.map do |(r, c)|
     {
@@ -122,35 +144,3 @@ def calculate_move(board, user_player, computer_player, current_player = compute
     moves.min_by { |move| move[:score] }
   end
 end
-
-def interact
-  board = Board.empty
-  user_player = rand(2).zero? ? 'X' : 'O'
-  computer_player = user_player == 'X' ? 'O' : 'X'
-  puts "you are #{user_player}"
-  while board.winner.nil?
-    puts board
-    puts 'enter move: row,column'
-    r, c = gets.chomp.split(',').map(&:to_i)
-    valid_move = board.mark!(r, c, user_player)
-    if !valid_move
-      puts 'invalid move'
-      next
-    end
-
-    # computer go
-    move = calculate_move(board, user_player, computer_player, computer_player)
-    puts "playing move #{move}"
-    break if move&.[](:location).nil?
-    board.mark!(move[:location][0], move[:location][1], computer_player)
-  end
-
-  if board.winner
-    puts "winner: #{board.winner}"
-  else
-    puts "it's a tie"
-  end
-  puts board
-end
-
-interact
