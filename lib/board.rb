@@ -133,6 +133,10 @@ class Board
     calc_alpha_beta(self, depth, -Float::INFINITY, Float::INFINITY, current_player)
   end
 
+  def game_over?
+    !winner.nil? || available_cells.empty?
+  end
+
   private
 
   def calc_alpha_beta(board, depth, alpha, beta, current_player)

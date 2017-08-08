@@ -15,11 +15,11 @@ class Player
 
   ## methods to implement
   # index from minmax functions to take. 0 is min, 1 is max
-  def minmax_index ; end
+  def minmax_index ; raise 'not implemented'; end
   # default score used in computing a-b search
-  def default_v_score ; end
+  def default_v_score ; raise 'not implemented'; end
   # play turn in interaction loop
-  def play_turn(board, search_depth); end
+  def play_turn(board, search_depth); raise 'not implemented'; end
 
 end
 

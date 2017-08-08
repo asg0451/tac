@@ -14,23 +14,23 @@ def interact(options)
 
     board = Board.empty(options[:board_size], human_player, computer_player)
 
-    player_list = [human_player, computer_player]
+    players = [human_player, computer_player]
     # computer maybe goes first
     if rand(2).zero?
       puts 'computer going first..'
-      player_list.reverse!
+      players.reverse!
     end
 
-    while board.winner.nil? && !board.available_cells.empty?
+    while !board.game_over?
       catch :game_loop do
-        player_list.each do |player|
+        players.each do |player|
           moved_validly = player.play_turn(board, options[:board_size])
           if !moved_validly
             puts 'invalid move'
             throw :game_loop
           end
           # break early if user just won
-          throw :game_loop if !board.winner.nil? || board.available_cells.empty?
+          throw :game_loop if board.game_over?
         end
       end
     end
