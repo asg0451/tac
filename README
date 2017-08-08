@@ -2,6 +2,8 @@ This program assumes linux and ruby >= 2.3.
 
 bin/main.rb to run interactively, rspec to run tests.
 
-The computer plaer uses a simple minimax algorithm with a-b pruning and a naive heuristic. I have set the iteration depth fairly low so that boards size 4 and up will run in reasonable time, but this sacrifices optimal play on a 3-grid. To change this, modify the constant AB_DEPTH in lib/tac.rb to a higher value.
+main.rb accepts command line arguments. Call with -h to see the help.
+
+The computer player uses a simple minimax algorithm with a-b pruning and a naive heuristic. I have set the iteration depth fairly low so that boards size 4 and up will run in reasonable time, but this sacrifices optimal play on a 3-grid. To change this, change the command-line argument -d/--search-depth. Use the argument -b/--board-size to change the board size.
 
 Input moves as row,column. e.g. 0,1

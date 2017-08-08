@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 
-# if the algorithm is too slow, try decreasing this number. if it's too inaccurate, try increasing it.
-AB_DEPTH = 4
-
 class Board
   include Enumerable
 
@@ -64,6 +61,10 @@ class Board
   # maximum index of board. used for convenience.
   def max_ind
     @m.size - 1
+  end
+
+  def size
+    @m.size
   end
 
   # does this board have a winner?
@@ -145,6 +146,6 @@ def calc_alpha_beta(board, depth, alpha, beta, user_player, computer_player, cur
   v
 end
 
-def calculate_move(board, user_player, computer_player, current_player = computer_player)
-  calc_alpha_beta(board, AB_DEPTH, -Float::INFINITY, Float::INFINITY, user_player, computer_player, current_player)
+def calculate_move(board, user_player, computer_player, current_player, depth)
+  calc_alpha_beta(board, depth, -Float::INFINITY, Float::INFINITY, user_player, computer_player, current_player)
 end
